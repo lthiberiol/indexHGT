@@ -1,0 +1,5 @@
+Ancestor,Descendant,Ancentor_name,Descendant_name,Constraint
+326,177,LUCA_chlorobiales_ignavibacteria,LUCA_cyanobacteria,OLDER
+177,326,LUCA_cyanobacteria,LUCA_chlorobiales_ignavibacteria,OLDER
+177,290,LUCA_cyanobacteria,LUCA_chloroflexi_thermomicrobia,OLDER
+290,177,LUCA_chloroflexi_thermomicrobia,LUCA_cyanobacteria,OLDER

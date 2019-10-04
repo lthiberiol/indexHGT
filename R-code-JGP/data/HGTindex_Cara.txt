@@ -1,0 +1,5 @@
+Ancestor,Descendant,Ancentor_name,Descendant_name,Constraint,Comments
+24,3,Sah Transfer donor CF older,Sah Transfer recipient CyM younger,OLDER,Cara HGT 1
+3,24,Sah Transfer recipient CyM younger,Sah Transfer donor CF older,OLDER,Cara inverse 1
+83,27,BchH Transfer recipient Ch younger,BchH Transfer donor CF older,OLDER,Cara inverse 2
+27,83,BchH Transfer donor CF older,BchH Transfer recipient Ch younger,OLDER, Cara HGT 2
