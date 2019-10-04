@@ -1,2 +1,3 @@
 # indexHGT
-pipeline to identify and assess possible HGTs as molecular clock constrains in the tree of life
+Purpose: Pipeline to identify and assess possible HGTs as molecular clock constraints in the tree of life.
+Authors: Fournier Lab, MIT
