@@ -38,15 +38,16 @@ class base_filter(object):
     '''
 
     def __init__(self, reference_tree, gene_tree_folder, aggregate_folder, reconciliation_folder,
-                 overall_tree_support_thresh=80,
-                 branch_support_thresh=95,
-                 ranger_confidence_threshold=0.9,
-                 ranger_executable='/work/ranger/CorePrograms/Ranger-DTL.mac',
-                 leaves_allowed=False):
+                 overall_tree_support_thresh=80, branch_support_thresh=95, ranger_confidence_threshold=0.9,
+                 ranger_executable='/work/ranger/CorePrograms/Ranger-DTL.mac', leaves_allowed=False):
+
+        #
+        # check <reference_tree> type, if either a str or a ete3 object are being provided, are treat as such
         if type(reference_tree) is str:
             self.species_tree = ete3.Tree(reference_tree, format=1)
         else:
             self.species_tree = reference_tree.copy()
+
         self.overall_tree_support_thresh = overall_tree_support_thresh
         self.support_threshold           = branch_support_thresh
         self.ranger_confidence_threshold = ranger_confidence_threshold
@@ -68,20 +69,36 @@ class base_filter(object):
         '''
 
         tmp_tree = tree_to_root.copy()
-        for node in sorted( reference_root.children, key=len ):
+        #
+        # traverse reference_tree root's children, should be only two, starting from the one with the smallest subtree
+        for node in sorted(reference_root.children, key=len):
+
+            #
+            # if the outgroup is a terminal node (rooted in a tip)
             if node.is_leaf():
                 leaf = tmp_tree.get_leaves_by_name(node.name)[0]
                 tmp_tree.set_outgroup(leaf)
                 return tmp_tree
+
+            #
+            # otherwise...
             else:
+                #
+                # check monophyly of referece_tree's outgroup within tree_to_root. If not monophyletic it means that its
+                #     current root is placed within the target new root.
                 is_it_monophyletic, clade_type, fucking_up = tmp_tree.check_monophyly(
                     node.get_leaf_names(),
                     'name',
                     unrooted=False
                 )
+                #
+                # if reference_tree's outgroup is monophyletic there is nothing extra to do but to set the new outgroup
                 if is_it_monophyletic:
                     equivalent = tmp_tree.get_common_ancestor(node.get_leaf_names())
                     tmp_tree.set_outgroup(equivalent)
+
+                #
+                # if not monophyletic just set the root in a random taxon not part of reference_tree's outgroup
                 else:
                     tmp_tree.set_outgroup(fucking_up.pop())
                     equivalent = tmp_tree.get_common_ancestor(node.get_leaf_names())
@@ -99,11 +116,13 @@ class base_filter(object):
         :return:  copy of provided gene tree with named internal nodes, and list o internal nodes with duplicated names.
         '''
 
-        tmp_tree = tree.copy()
+        tmp_tree         = tree.copy()
         branches         = re.findall('^(m\d+) = LCA\[(\S+), (\S+)\]:', reconciliation_file, re.M)
         duplicated_names = {}
         for name, leaf1, leaf2 in branches:
             node = tmp_tree.get_common_ancestor(leaf1, leaf2)
+            #
+            # if node is already named add it to duplicated_names list and ignore new naming.
             if node.name:
                 duplicated_names[name] = node.name
                 continue
@@ -144,10 +163,10 @@ class base_filter(object):
 
         if not self.leaves_allowed:
             transfers = re.findall('^(m\d+) = .*, Transfers = ([^0]\d+?)\], \[Most Frequent mapping --> (n\d+), \
-    (\d+) times\], \[Most Frequent recipient --> (n\d+), (\d+) times\].', aggregated, re.M)
+(\d+) times\], \[Most Frequent recipient --> (n\d+), (\d+) times\].', aggregated, re.M)
         else:
             transfers = re.findall('^(m\d+) = .*, Transfers = ([^0]\d+?)\], \[Most Frequent mapping --> (\S+), \
-    (\d+) times\], \[Most Frequent recipient --> (\S+), (\d+) times\].', aggregated, re.M)
+(\d+) times\], \[Most Frequent recipient --> (\S+), (\d+) times\].', aggregated, re.M)
 
         selected_transfers = []
         for donor_map_name, ranger_confidence, donor_name, ranger_confidence_donor, \
@@ -167,12 +186,16 @@ class base_filter(object):
                 recipient_map_name = recipient_map_search.group(1)
                 if not all([donor_name, recipient_name, donor_map_name, recipient_map_name]):
                     continue
-                /.append({'donor': donor_name, 'recipient': recipient_name,
-                          'donor_map': donor_map_name, 'recipient_map': recipient_map_name,
-                          'bipartition_support': donor_map.support,
-                          'ranger_confidence': int(ranger_confidence),
-                          'ranger_confidence_donor': int(ranger_confidence_donor),
-                          'ranger_confidence_recipient': int(ranger_confidence_recipient)})
+                selected_transfers.append({
+                    'donor':                       donor_name,
+                    'recipient':                   recipient_name,
+                    'donor_map':                   donor_map_name,
+                    'recipient_map':               recipient_map_name,
+                    'bipartition_support':         donor_map.support,
+                    'ranger_confidence':           int(ranger_confidence) / num_replicates,
+                    'ranger_confidence_donor':     int(ranger_confidence_donor) / num_replicates,
+                    'ranger_confidence_recipient': int(ranger_confidence_recipient) / num_replicates
+                })
         transfers_df = pd.DataFrame(selected_transfers)
         transfers_df['family'] = group
         return [transfers_df, gene_tree]
@@ -182,44 +205,42 @@ class base_filter(object):
         '''
 
         :param df:
-        :param assess_donor_dtl:
         :return:
         '''
         transfer_df = df.copy()
 
-        if assess_donor_dtl:
-            donor_subtrees = []
-            donor_maps = []
-            donor_subtree_sizes = []
-            for group in transfer_df.family.unique():
-                with cd('%s/%s' % (self.reconciliation_folder, group)):
-                    gene_tree = ete3.Tree(linecache.getline('%s.output1' % group, 8), format=1)
-                for donor_map in transfer_df.loc[transfer_df.family == group,
-                                                 'donor_map'].unique():
-                    donor_maps.append([group, donor_map])
-                    gene_donor_branch = next(gene_tree.iter_search_nodes(name=donor_map))
-                    donor_subtrees.append(gene_donor_branch.write(format=9))
-                    donor_subtree_sizes.append(len(gene_donor_branch))
+        donor_subtrees = []
+        donor_maps = []
+        donor_subtree_sizes = []
+        for group in transfer_df.family.unique():
+            with cd('%s/%s' % (self.reconciliation_folder, group)):
+                gene_tree = ete3.Tree(linecache.getline('%s.output1' % group, 8), format=1)
+            for donor_map in transfer_df.loc[transfer_df.family == group,
+                                             'donor_map'].unique():
+                donor_maps.append([group, donor_map])
+                gene_donor_branch = next(gene_tree.iter_search_nodes(name=donor_map))
+                donor_subtrees.append(gene_donor_branch.write(format=9))
+                donor_subtree_sizes.append(len(gene_donor_branch))
 
-            with open('tmp_ranger.input', 'w') as out:
-                out.write('%s\n' % self.species_tree.write(format=9))
-                out.write('\n'.join(donor_subtrees))
+        with open('tmp_ranger.input', 'w') as out:
+            out.write('%s\n' % self.species_tree.write(format=9))
+            out.write('\n'.join(donor_subtrees))
 
-            subprocess.call([
-                '/work/ranger/CorePrograms/Ranger-DTL.mac',
-                '-q',
-                '-i', 'tmp_ranger.input',
-                '-o', 'tmp_ranger.output'
-            ])
+        subprocess.call([
+            self.ranger,
+            '-q',
+            '-i', 'tmp_ranger.input',
+            '-o', 'tmp_ranger.output'
+        ])
 
-            for (group, donor_map), subtree_size, dtl_cost in zip(
-                    donor_maps,
-                    donor_subtree_sizes,
-                    re.findall('^The minimum reconciliation cost is: (\d+)',
-                               open('tmp_ranger.output').read(),
-                               re.M)):
-                transfer_df.loc[(transfer_df.donor_map == donor_map) & (transfer_df.family == group),
-                                'donor_dtl_size_ratio'] = int(dtl_cost) / subtree_size
+        for (group, donor_map), subtree_size, dtl_cost in zip(
+                donor_maps,
+                donor_subtree_sizes,
+                re.findall('^The minimum reconciliation cost is: (\d+)',
+                           open('tmp_ranger.output').read(),
+                           re.M)):
+            transfer_df.loc[(transfer_df.donor_map == donor_map) & (transfer_df.family == group),
+                            'donor_dtl_size_ratio'] = int(dtl_cost) / subtree_size
 
         return transfer_df
 
@@ -247,6 +268,11 @@ class base_filter(object):
 
 
     def assess_transfer_distance(self, df):
+        '''
+
+        :param df:
+        :return:
+        '''
         transfer_df = df.copy()
         grouped_by_donor_recipient = transfer_df.groupby(['donor', 'recipient'])
         for donor, recipient in grouped_by_donor_recipient.groups:
