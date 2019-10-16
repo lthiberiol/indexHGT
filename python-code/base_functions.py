@@ -142,7 +142,10 @@ class base_filter(object):
 
         if not os.path.isdir('%s/%s' % (self.reconciliation_folder, group)) \
                 or not os.path.isfile('%s/%s' % (self.aggregate_folder, group)):
-            return {group: None}
+            #
+            # if there is no available reconciliation data, just return a None array
+            #
+            return [None, None]
 
         aggregated = open('%s/%s' % (self.aggregate_folder, group)).read()
         with cd('%s/%s' % (self.reconciliation_folder, group)):
@@ -157,7 +160,11 @@ class base_filter(object):
 
         ufboot_distribution = [node.support for node in gene_tree.traverse() if not node.is_leaf()]
         if np.percentile(ufboot_distribution, 25) < self.overall_tree_support_thresh:
-            return {group: None}
+            #
+            #if the overall support value of the gene tree is too low, there is no reason to assess the transfer
+            #   information of the gene family
+            #
+            return [None, None]
 
         num_replicates = float(re.match('Processed (\d+) files', aggregated).group(1))
 
@@ -302,3 +309,119 @@ class base_filter(object):
                                                     transfer_df['recipient_subtree_size']
 
         return transfer_df
+
+% % add_to
+aggregate
+
+
+def map_taxonomic_level(self, df, taxa_table=None):
+    '''
+
+    :param self:
+    :param df: df containing all transfers
+    :param taxa_table: tab-delimited file with all taxa present in the transfer df, should be part of a \
+    assembly_summmary, either genbank of refseq
+    :return:
+    '''
+    ncbi                  = ete3.NCBITaxa()
+
+    #
+    #read taxa table and make the necessary changes
+    taxa_df               = pd.read_csv(taxa_table, sep='\t')
+    #
+    #important: RANGER understand "_" as separation between genome and gene IDs, so we have to remove it from
+    #   the taxa table in order to match data structure in the rest of the pipe
+    #... ranger is also very picky about its naming convetions, tips cannot contain "."
+    taxa_df['Unnamed: 0'] = taxa_df['Unnamed: 0'].apply(lambda x: x.replace('_', '').split('.')[0])
+    taxa_df['accession']  = taxa_df['accession'].apply(lambda x: x.replace('_', '').split('.')[0])
+    taxa_df.set_index('Unnamed: 0', inplace=True)
+
+    #
+    #this df will hold all taxonomic data for all leaves in the species tree
+    taxonomy_df = pd.DataFrame()
+
+    #
+    #traverse through all leaves in the species tree and add tags regarding its taxonomic classification
+    for leaf in self.species_tree.get_leaf_names():
+        #
+        #kelsey's naming convention wasn't the most consistent, so let's try two distinct ways to find a leaf in the
+        #   taxa table
+        #
+        if leaf in taxa_df.index:
+            node_name = taxa_df.index[taxa_df.index == leaf][0]
+        elif leaf in taxa_df.accession.values:
+            node_name = taxa_df.query('accession==@leaf').index[0]
+        else:
+            #
+            #if none works, fuck it...
+            continue
+
+        #does this leaf has a valid taxid in our taxa table?
+        if pd.notnull(taxa_df.loc[node_name, 'taxid']):
+            #
+            #sweet, what is it?
+            taxid = taxa_df.loc[node_name, 'taxid']
+
+            #
+            #create a lineage dict that we can manipulate
+            lineage = {taxon_rank: taxon
+                       #
+                       #traverse all NCBI classification available for a its taxid
+                       for taxon, taxon_rank in ncbi.get_rank(ncbi.get_lineage(taxid)).items()
+                       }
+            #
+            #add the highest level taxonomic information we have
+            lineage['leaf_name'] = leaf
+            #
+            #I said there would be a LOT of things here...
+            taxonomy_df = taxonomy_df.append(lineage, ignore_index=True)
+    #
+    #our most specific information about each leaf will work as our "primary key"
+    taxonomy_df.set_index('leaf_name', inplace=True)
+
+    #
+    #drop all columns not related to commonly used taxonomic ranks
+    to_drop = []
+    for column in taxonomy_df.columns:
+        if column not in ['class', 'species', 'superkingdom', 'genus',
+                          'order', 'phylum', 'family', 'kingdom']:
+            to_drop.append(column)
+    taxonomy_df.drop(to_drop, axis='columns', inplace=True)
+
+    transfer_df = df.copy()
+    for index, row in transfer_df.iterrows():
+        donor_descendants = next(
+            self.species_tree.iter_search_nodes(ranger_name=row.donor)
+        ).get_leaf_names()
+        recipient_descendants = next(
+            self.species_tree.iter_search_nodes(ranger_name=row.recipient)
+        ).get_leaf_names()
+
+        donor_taxonomy     = taxonomy_df.loc[[taxon for taxon in donor_descendants     if taxon in taxonomy_df.index]]
+        recipient_taxonomy = taxonomy_df.loc[[taxon for taxon in recipient_descendants if taxon in taxonomy_df.index]]
+
+        if not donor_taxonomy.shape[0] or not recipient_taxonomy.shape[0]:
+            #
+            # if no descendant has a valid taxid, ignore it...
+            continue
+
+        donor_taxonomy.dropna(    axis=1, how='any', inplace=True)
+        recipient_taxonomy.dropna(axis=1, how='any', inplace=True)
+
+        donor_taxonomy = next(donor_taxonomy.loc[:,
+                              np.invert(donor_taxonomy.T.duplicated().values)
+                              ].iterrows())[1]
+        recipient_taxonomy = next(recipient_taxonomy.loc[:,
+                                  np.invert(recipient_taxonomy.T.duplicated().values)
+                                  ].iterrows())[1]
+
+        common_ranks = donor_taxonomy.index.intersection(recipient_taxonomy.index)
+
+        for rank in ['species', 'genus', 'family', 'order',
+                     'class', 'phylum', 'kingdom', 'superkingdom']:
+            if rank in common_ranks[donor_taxonomy[common_ranks] == recipient_taxonomy[common_ranks]]:
+                break
+
+        transfer_df.loc[index, 'transfer_level'] = rank
+
+    return (transfer_df)
