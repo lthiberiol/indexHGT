@@ -28,7 +28,7 @@ sessioninfo::package_info() #Diagnostic: Some of the packages might have a loade
 ################################################################################################
 ### DEFINE FUNCTIONS ###########################################################################
 ################################################################################################
-### Filter/Post sample a given datedist for ONLY Trees that pass HGT constraints 
+### Filter/Post sample a given datedist for ONLY Trees that pass HGT constraints
 #Inputs: - multiPhylo datedist file = MyTree ***
 #        - HGT constraint for internal node # ordered index
 #        - a,d are passed in from HGTnode_input file which maps to tree labels file
@@ -38,112 +38,6 @@ sessioninfo::package_info() #Diagnostic: Some of the packages might have a loade
 #TO-DO COMPLETED FIX FOR ERROR ON <2,=1 TREES IN LOOP!!!
 #TO-DO allow a project name to be passed into this function and written to output files
 #TO-DO allow for different A>D constraints, beyond just internal node order, perhaps an option =1,2,3 for internal,standard,ranger nodes
-
-### DEPRECATED FUNCTIONS 9-30-19 | 10-4-19
-SampleTrees <- function(tree0,a,d,nameofrun,print=T){
-  MyTree <- tree0
-  n=0
-  tmp = 0
-  nPassedTrees =0
-  PassedTrees <- vector("list", 2) #create an empty list of 2 elements to store PassedTrees
-  class(PassedTrees) <- "multiPhylo" #make this list a multiPhylo object
-  #nPassedTree <- vector("list", 1) #create an empty list of 2 elements to store PassedTrees
-  #class(nPassedTree) <- "phylo" #make this list a multiPhylo object
-  write.tree(MyTree,"All Initial Trees.datedist")
-  AllTrees <- read.tree(file="All Initial Trees.datedist")
-  class(AllTrees) <- "multiPhylo"
-  TreePassedConstraint<-as.vector(c(seq(AllTrees)))
-  #Dates
-  conditionalDates = matrix(ncol = length(AllTrees[[1]]$node.label),nrow=3000)  #(optional) a vector of mode character giving the names of the nodes.
-  conditionalEdges = matrix(ncol = length(AllTrees[[1]]$edge.length),nrow=3000)  #(optional) a numeric vector giving the lengths of the branches given by edge.
-  # For loop to evaluate one HGT
-  for (i in MyTree){
-    tmp = tmp + 1
-    dates = as.numeric(i$node.label)
-    A = dates[a] 
-    D = dates[d]
-    TreePassedConstraint[tmp]<-" "
-    if (A>D){
-      print(tmp)
-      n=n+1
-      nPassedTrees=nPassedTrees+1
-      TreePassedConstraint[tmp]<-1 #Write to a text file with '1' for PassedTrees
-      conditionalDates[n,]=dates #Turned OFF because no data manipulation just filtering
-      conditionalEdges[n,]=i$edge.length
-      PassedTrees[[n]]=i
-      #nPassedTree=i
-    }
-  }
-  #Write PassedTrees given A>D in Newick format from ape in R... NEED TO CHECK APPROPRIATE FILE FORMATTTING
-  if ( (nPassedTrees<2)==FALSE){
-    filename1 <- " PassedTrees.datedist"
-    filename1 = paste0(nameofrun,filename1,sep="")
-    write.tree(PassedTrees,file=filename1)
-    filename2 <- " PassedTreesIndex.txt"
-    filename2 = paste0(nameofrun,filename2,sep="")
-    write.csv(TreePassedConstraint,file=filename2)
-    return(PassedTrees)} else {return("< 2 Trees satisfied by HGT Constraint Error. Script Stopped.")}
-};
-SampleTreesStandard <- function(MyTree,Ancestor,Descendant,i){
-  a<- with(internalNodeLabels,N[Node==(Ancestor)])
-  d<- with(internalNodeLabels,N[Node==(Descendant)])
-  SampleTrees(MyTree,a,d,i) #Given a set of Trees and constraints, filter and write results to file
-};
-#SampleTrees(BA,50,61,0)
-#SampleTreesStandard(BA,292,268,1)
-#
-SampleTrees1 <- function(tree0,a,d,nameofrun,print=T){
-  MyTree <- tree0
-  n=0
-  tmp = 0
-  nPassedTrees =0
-  PassedTrees <- vector("list", 2) #create an empty list of 2 elements to store PassedTrees
-  class(PassedTrees) <- "multiPhylo" #make this list a multiPhylo object
-  nPassedTree <- vector("list", 1) #create an empty list of 2 elements to store PassedTrees
-  class(nPassedTree) <- "phylo" #make this list a multiPhylo object
-  write.tree(MyTree,"All Initial Trees.datedist")
-  AllTrees <- read.tree(file="All Initial Trees.datedist")
-  class(AllTrees) <- "multiPhylo"
-  TreePassedConstraint<-as.vector(c(seq(AllTrees)))
-  #Dates
-  conditionalDates = matrix(ncol = length(AllTrees[[1]]$node.label),nrow=3000)  #(optional) a vector of mode character giving the names of the nodes.
-  conditionalEdges = matrix(ncol = length(AllTrees[[1]]$edge.length),nrow=3000)  #(optional) a numeric vector giving the lengths of the branches given by edge.
-  # For loop to evaluate one HGT
-  for (i in MyTree){
-    tmp = tmp + 1
-    dates = as.numeric(i$node.label)
-    A = dates[a] 
-    D = dates[d]
-    TreePassedConstraint[tmp]<-" "
-    if (A>D){
-      print(tmp)
-      n=n+1
-      nPassedTrees=nPassedTrees+1
-      TreePassedConstraint[tmp]<-1 #Write to a text file with '1' for PassedTrees
-      conditionalDates[n,]=dates #Turned OFF because no data manipulation just filtering
-      conditionalEdges[n,]=i$edge.length
-      PassedTrees[[n]]=i
-      nPassedTree=i
-    }
-  }
-  #Write PassedTrees given A>D in Newick format from ape in R... NEED TO CHECK APPROPRIATE FILE FORMATTTING
-  if ( (nPassedTrees<1)==FALSE){
-    filename1 <- " PassedTrees.datedist"
-    filename1 = paste0(nameofrun,filename1,sep="")
-    write.tree(nPassedTree,file=filename1)
-    filename2 <- " PassedTreesIndex.txt"
-    filename2 = paste0(nameofrun,filename2,sep="")
-    write.csv(TreePassedConstraint,file=filename2)
-    return(nPassedTree)} else {return("< 1 Trees satisfied by HGT Constraint Error. Script Stopped.")}
-};
-SampleTreesStandard1 <- function(MyTree,Ancestor,Descendant,i){
-  a<- with(internalNodeLabels,N[Node==(Ancestor)])
-  d<- with(internalNodeLabels,N[Node==(Descendant)])
-  SampleTrees1(MyTree,a,d,i) #Given a set of Trees and constraints, filter and write results to file
-};
-#SampleTrees1(BA,50,61,0)
-#SampleTreesStandard1(BA,292,268,1) #HGT1
-#SampleTreesStandard1(BA,290,177,10) #HGT10
 ################################################################################################
 
 # FIX 10-8-19 LIMITED TO 9999 TREES CURRENTLY!
@@ -167,7 +61,7 @@ SampleTrees0 <- function(tree0,a,d,nameofrun,print=T){
   for (i in MyTree){
     tmp = tmp + 1
     dates = as.numeric(i$node.label)
-    A = dates[a] 
+    A = dates[a]
     D = dates[d]
     TreePassedConstraint[tmp]<-" "
     if (A>D){
@@ -191,7 +85,7 @@ SampleTrees0 <- function(tree0,a,d,nameofrun,print=T){
   filename2 = paste0(nameofrun,filename2,sep="")
   write.csv(TreePassedConstraint,file=filename2)
   return(nPassedTrees)
-  
+
   }
   else if ( (nPassedTrees<2)==FALSE )
   {
@@ -213,7 +107,7 @@ SampleTrees0 <- function(tree0,a,d,nameofrun,print=T){
     write.csv(TreePassedConstraint,file=filename2)
     return(nPassedTree)
   }
-  
+
 };
 SampleTreesStandard0 <- function(MyTree,Ancestor,Descendant,i){
   a<- with(internalNodeLabels,N[Node==(Ancestor)])
@@ -224,13 +118,13 @@ SampleTreesStandard0 <- function(MyTree,Ancestor,Descendant,i){
 #SampleTreesStandard0(BA,292,268,1) #HGT1
 #SampleTreesStandard0(BA,293,324,2) #HGT2
 
-#SampleTreesStandard0(BA,292,268,1) #HGT1 
+#SampleTreesStandard0(BA,292,268,1) #HGT1
 #SampleTreesStandard0(BA,290,177,10) #HGT10
 #SampleTreesStandard0(BA,290,179,11) #HGT11
 #SampleTreesStandard0(BA,287,177,13) #HGT13
 #SampleTreesStandard0(BA,287,179,14) #HGT14
 
-#SampleTreesStandard0(BB,292,268,1) #HGT1 
+#SampleTreesStandard0(BB,292,268,1) #HGT1
 #SampleTreesStandard0(BB,290,177,10) #HGT10
 #SampleTreesStandard0(BB,290,179,11) #HGT11
 #SampleTreesStandard0(BB,287,177,13) #HGT13
@@ -243,14 +137,14 @@ LoadDateDist <-function(DateDistFilePath,UniqueModelCode){
   assign(paste0(UniqueModelCode),model,envir = .GlobalEnv);
   assign(paste0(UniqueModelCode,"datedist",sep=""),DateDistFilePath,envir = .GlobalEnv);
 };
-#LoadDateDist("modeldata/Cyano_modelBB_ugam_bd_7_20_sample.datedist","BB") 
+#LoadDateDist("modeldata/Cyano_modelBB_ugam_bd_7_20_sample.datedist","BB")
 
 ### Loop over all HGT constraints and for each, save PassedTrees in a new datedist file with prefix# as row of HGT constraint.
 #FIXED ON 10-8-19: Have better failure/error handling for returning 0 or 1 trees!!!
 #NOTE TO-DO: Include the Node naming checks within this function!
 #LOOP FOR each i in HGTnode
 #Inputs: a multiPhylo datedist file = MyTree = tree0
-#        a HGT index  
+#        a HGT index
 #        a ProjectName = nameofrun
 #Outputs: to console, table/Text
 #Outputs: DATA from sub function called SampleTrees() outputs to datedist file PassedTrees.txt
@@ -275,7 +169,7 @@ FilterTreeHGT <- function(tree2,hgts,nameofrun,print=T){
     d<- with(internalNodeLabels,N[Node==(Descendant)])
     SampleTrees0(MyTree,a,d,i) #Given a set of Trees and constraints, filter and write results to file
     print(paste(i,c("HGT constraint run complete!"),sep=" "))
-    PassedHGT[[n]]=  ReadPassedTrees(i) #Error: Error in if (all(phy$node.label == "")) phy$node.label <- NULL : 
+    PassedHGT[[n]]=  ReadPassedTrees(i) #Error: Error in if (all(phy$node.label == "")) phy$node.label <- NULL :
     #missing value where TRUE/FALSE needed Not the cleanest results function/table but can adjust.
   }
   write.table(PassedHGT,paste(nameofrun,"PassedHGTResults.txt"))
@@ -374,7 +268,7 @@ histnode <- function(node2plot,filename0){
   return(hist.default(nodelab,xlab="Node Label as Date in Ma",
                       ylab=filename0,
                       xlim=rev(c(2200,3600))))
-  
+
 };
 #histnode(177,"All Initial Trees.datedist")
 #histnode(177,"1 PassedTrees.datedist")
@@ -443,7 +337,7 @@ PrintRangerNodeAge <- function(MyTreeLabels,MyTreeLabelsRanger,MyTreeInput,TreeN
   internalNodeLabels = data.frame(N = c(seq(1:Nnodes)),Node=c((MyTreeLabels$node.label)))
   NodeAge<-as.numeric(MyTreeInput[[TreeNumber]]$node.label[with(internalNodeLabelsRanger,N[NodeNameRanger==(RangerNode)])])
   returnValue(NodeAge)};
-# PrintRangerNodeAge(MyTreeLabels,MyTreeLabelsRanger,BB,1,'n61') 
+# PrintRangerNodeAge(MyTreeLabels,MyTreeLabelsRanger,BB,1,'n61')
 
 # From original script to plot the median node age on a single tree from a given datedist file
 # Writes to a table and PDF
@@ -468,7 +362,7 @@ PlotPassedTrees <- function(datedistfile){
     conditionalEdges[n,]=i$edge.length
     foo[[n]]=i
   }
-  ## Matrix containing node ages (columns) of trees (rows) that meet the conditional constraint. 
+  ## Matrix containing node ages (columns) of trees (rows) that meet the conditional constraint.
   conditionalDates=conditionalDates[complete.cases(conditionalDates),]
   conditionalEdges=conditionalEdges[complete.cases(conditionalEdges),]
   # Calculations for Dates
@@ -507,30 +401,30 @@ PlotPassedTrees <- function(datedistfile){
   }
   #Store edge length in a variable
   newTree$edge.length = v
-  
+
   #To-Do: Rewrite keys from file
   #DEBUG OFF: taxonomyKey = read.delim("phototrophy_key_no_bin_key.txt",header=FALSE)
   tip = newTree$tip.label
   #DEBUG OFF: newTree$tip.label=mapvalues(tip, from=taxonomyKey$V3, to=as.character(taxonomyKey$V4))
-  
+
   #TO-DO expand upon this!
-  
+
   #Begin PDF
   pdf("AllMedianTreeDates.pdf", 7, 5)
-  
+
   #TO-DO: Adjust these plot methods and understand them better!
-  
+
   #plot1<- plot(newTree,show.node.label = FALSE,cex = 0.5,show.tip.label = TRUE)
   plot(newTree,show.node.label = TRUE,cex = 0.5,show.tip.label = TRUE)
   #axisPhylo()
   #plot1<- plot(newTree,show.node.label = FALSE,cex = 0.5,show.tip.label = TRUE)
-  
+
   #tmp = newTree
   #tmp$node.label=seq(tmp$node.label)
   #plot(tmp,show.node.label = TRUE,cex = 0.5,show.tip.label = FALSE)
   #plot2<- plot(tmp,show.node.label = TRUE,cex = 0.5,show.tip.label = FALSE)
   axisPhylo()
-  
+
   dev.off()
   write.tree(newTree, file="AllPassedMedianTreeDates.tree")
   return("AllMedianTreeDates.pdf")
@@ -570,7 +464,7 @@ MyTreeLabelsNewTips$tip.label=mapvalues(tip, from=taxonomyKey$ShortName, to=as.c
 
 ### HGT index as data frame and HGT atomic vector index
 ####### TO-DO: Debug error in read.table, which will occur because of file format.
-HGTnode_input <- read.csv(file="modeldata/HGTindex_highconfidence_10_2_19.txt", header=TRUE, sep=",",fill=TRUE) 
+HGTnode_input <- read.csv(file="modeldata/HGTindex_highconfidence_10_2_19.txt", header=TRUE, sep=",",fill=TRUE)
 # N.B. Carriage return/mac vs PC text file can throw error, open file, reformat, try again
 # HGTnode index and atomic vector HGT also created
 HGTnode <- data.matrix(HGTnode_input[,])
@@ -612,12 +506,12 @@ CheckFailInternalNodeN(MyTree,MyTreeLabels) # Expect to RETURN NULL
 MyTree[[1]]$Nnode == MyTreeLabels$Nnode # Expect to RETURN TRUE Validate Internal node numbers to ensure match
 print(Nnodes) #Print N expected nodes
 
-CheckFailInternalNodeN(BA,MyTreeLabels) 
-CheckFailInternalNodeN(BB,MyTreeLabels) 
-CheckFailInternalNodeN(BC,MyTreeLabels) 
-CheckFailInternalNodeN(BD,MyTreeLabels) 
-CheckFailInternalNodeN(BE,MyTreeLabels) 
-CheckFailInternalNodeN(BF,MyTreeLabels) 
+CheckFailInternalNodeN(BA,MyTreeLabels)
+CheckFailInternalNodeN(BB,MyTreeLabels)
+CheckFailInternalNodeN(BC,MyTreeLabels)
+CheckFailInternalNodeN(BD,MyTreeLabels)
+CheckFailInternalNodeN(BE,MyTreeLabels)
+CheckFailInternalNodeN(BF,MyTreeLabels)
 CheckFailInternalNodeN(BG,MyTreeLabels)
 
 BA[[1]]$Nnode == MyTreeLabels$Nnode
@@ -653,7 +547,7 @@ FilterTreeHGT(BF,HGT,"BF_model_cyanoclock_highpass")
 setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBG/")
 FilterTreeHGT(BG,HGT,"BG_model_cyanoclock_highpass")
 
-setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBE_long/")
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/RunBE_long/")
 LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/data/Cyano_modelBE_ugam_bd_longrun_7_20_sample.datedist","BElong")
 FilterTreeHGT(BElong,HGT,"BE_longrun_model_cyanoclock_highpass") #5700 trees
 
@@ -664,6 +558,10 @@ FilterTreeHGT(BEnobd,HGT,"BE_nobd_model_cyanoclock_highpass") #1400 trees
 setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBE_ugambd")
 LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/data/Cyano_modelBE_ugam_bd_7_20_sample.datedist","BEugambd")
 FilterTreeHGT(BEugambd,HGT,"BE_ugambd_model_cyanoclock_highpass") #1500 trees
+
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBB_long")
+LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/Cyano_modelBB_long_ugam_bd_7_20_sample.datedist","BBlong")
+FilterTreeHGT(BBlong,HGT,"BB_long_ugam_bd_model_cyanoclock_highpass") #9900 trees
 
 ### CHECK A GIVEN HGT CONSTRAINT THAT IT HAS SAME NUMBER INTERNAL NODES
 # TO-DO RECODE AS LOOP FOR EACH I IN HGT:
@@ -719,10 +617,15 @@ histnodedensity(177,"14 PassedTrees.datedist")
 histnodedensity(177,"15 PassedTrees.datedist")
 histnodedensity(177,"16 PassedTrees.datedist")
 
+##############################################
+### END SCRIPT EXECUTION #####################
+##############################################
+
 ####################################################################
-### ANALYZE FOR INDIVIDUAL MODEL:
-### BEugambd
-#####
+### DRAFT CODE FOR ANALYSIS FOR INDIVIDUAL MODEL:
+### BB_long / BEugambd
+####################################################################
+
 #Select Trees that passed multiple HGT constraints:
 # HGT[n] + HGT[n+1]   ### TO-DO recode this in a loop (maybe?)
 #Get the runs you want to match...
@@ -730,31 +633,75 @@ histnodedensity(177,"16 PassedTrees.datedist")
 #Existing script re-orders columns so what was the index column becomes the var.
 #TO-DO: Recode this in Python using a better intersection algorithm!!!
 
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/")
+# NOTE! This must contain index files for the model/datedist you're working with!
+
 for (i in HGT){LoadHGTrun(i)}
-####
+
+#HGT Group 0 All Initial Trees
+#HGT Group 1: 4,8,15,7,16,9,3,6,12,5
+#HGT Group 2:                       ,2
+#HGT Group 3:                        ,14
+#HGT Group 4:                           ,13
+#HGT Group 5:                              ,1
+#HGT Group 6:                                ,11
+#HGT Group 7:                                  ,10
+
+#1 {4,8,15,7,16,9,3,6,12,5}
+
+### Match HGT 3,5,7 to see which trees pass all these constraints!
 MatchAllPassed <- data.frame(match_df(match_df(PassedTreesIndex3,PassedTreesIndex5),PassedTreesIndex7,on=NULL)) #use reduce/map to make this work!
-#MatchAllPassed <- data.frame(match_df(PassedTreesIndex1,PassedTreesIndex4,on=NULL)) #use reduce/map to make this work!
-####
-AllPassed <- MatchAllPassed$X[ which(MatchAllPassed$x %in% 1) ]
+#TO-DO Fix this sloppy code and use reduce/map to make this work!
+
+# Intersect HGT Group 1
+MatchAllPassed1 <- data.frame(
+  match_df(
+    match_df(
+      match_df(
+        match_df(
+          match_df(
+            match_df(
+              match_df(
+                match_df(
+                  match_df(PassedTreesIndex4,PassedTreesIndex8,on=NULL
+                  ),PassedTreesIndex15,on=NULL
+                ),PassedTreesIndex7,on=NULL
+              ),PassedTreesIndex16,on=NULL
+            ),PassedTreesIndex9,on=NULL
+          ),PassedTreesIndex3,on=NULL
+        ),PassedTreesIndex6,on=NULL
+      ),PassedTreesIndex12,on=NULL
+    ),PassedTreesIndex5,on=NULL)
+);
+# Check how many trees pass
+length(MatchAllPassed1$x)
+length((filter(MatchAllPassed1, x == "1")$x))
+# Data manipulation
+AllPassed <- MatchAllPassed1$X[ which(MatchAllPassed1$x %in% 1) ]
 LoadDateDist("All Initial Trees.datedist","MyInitialTrees")
 AllPassedTrees <- MyInitialTrees[c(AllPassed)]
+# Print Passed Trees
 print(AllPassedTrees)
 print(AllPassed)
-write.tree(AllPassedTrees,"Match PassedTrees.datedist")
-write.csv(AllPassed,file="Match PassedTrees.txt")
+# Write Passed Trees down to disk
+write.tree(AllPassedTrees,"Match HGT 1 PassedTrees.datedist")
+write.csv(AllPassed,file="Match HGT 1 PassedTrees.txt")
 
-histnode(177,"Match PassedTrees.datedist")
-histnodedensity(177,"Match PassedTrees.datedist")
+# Load back results
+LoadDateDist("Match HGT 1 PassedTrees.datedist","MatchAllTrees1")
 
-##############################################
-### END SCRIPT EXECUTION #####################
-##############################################
+# Print results
+PrintNodeAge(MyTreeLabels,MatchAllTrees1,1,177)
+
+histnode(177,"Match HGT 1 PassedTrees.datedist")
+histnodedensity(177,"Match HGT 1 PassedTrees.datedist")
+
+histnode(177,"All Initial Trees.datedist")
+histnodedensity(177,"All Initial Trees.datedist")
 
 ##############################################
 ### SAVED RESULTS FOR DEBUGGING ##############
 ##############################################
-
-### Results for new model runs:
 
 ### END SCRIPT RESULTS & NOTES
 ##############################################
