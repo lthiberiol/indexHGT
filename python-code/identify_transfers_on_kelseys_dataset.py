@@ -100,7 +100,6 @@ else:
 #                        'ranger_confidence_recipient']] = transfer_df.loc[:, ['ranger_confidence',
 #                                                                              'ranger_confidence_donor',
 #                                                                              'ranger_confidence_recipient']] / 50
-
     #
     #save the run for future re-analysis
     transfer_df.to_csv('transfers.tab', sep='\t')
@@ -119,6 +118,7 @@ transfer_df = transfer_df[(transfer_df.bipartition_support        >=95)  &
 #preparing for the MaxTic run!
 #
 ########################################################################################################################
+
 #
 #use a random reconciliation file as example of species tree internal branch names, as all reconciliations used the same
 #   tree as model the should all be named the same
@@ -132,6 +132,10 @@ out = open('maxtic.input', 'w')
 for index, row in transfer_df[['donor', 'recipient']].iterrows():
     out.write('%s\n' % '\t'.join(row.tolist()))
 out.close()
+
+ranger_parser.species_tree.write(outfile='species_tree_named_nodes',
+                               format=1,
+                               dist_formatter='%.10f')
 
 #
 #run MaxTic
