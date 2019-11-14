@@ -85,7 +85,7 @@ SampleTrees0 <- function(tree0,a,d,nameofrun,print=T){
   filename2 = paste0(nameofrun,filename2,sep="")
   write.csv(TreePassedConstraint,file=filename2)
   return(nPassedTrees)
-
+  
   }
   else if ( (nPassedTrees<2)==FALSE )
   {
@@ -107,7 +107,7 @@ SampleTrees0 <- function(tree0,a,d,nameofrun,print=T){
     write.csv(TreePassedConstraint,file=filename2)
     return(nPassedTree)
   }
-
+  
 };
 SampleTreesStandard0 <- function(MyTree,Ancestor,Descendant,i){
   a<- with(internalNodeLabels,N[Node==(Ancestor)])
@@ -136,8 +136,8 @@ LoadDateDist <-function(DateDistFilePath,UniqueModelCode){
   class(model) <- "multiPhylo";
   assign(paste0(UniqueModelCode),model,envir = .GlobalEnv);
   assign(paste0(UniqueModelCode,"datedist",sep=""),DateDistFilePath,envir = .GlobalEnv);
-};
-#LoadDateDist("modeldata/Cyano_modelBB_ugam_bd_7_20_sample.datedist","BB")
+}
+# LoadDateDist("modeldata/Cyano_modelBB_ugam_bd_7_20_sample.datedist","BB")
 
 ### Loop over all HGT constraints and for each, save PassedTrees in a new datedist file with prefix# as row of HGT constraint.
 #FIXED ON 10-8-19: Have better failure/error handling for returning 0 or 1 trees!!!
@@ -268,7 +268,7 @@ histnode <- function(node2plot,filename0){
   return(hist.default(nodelab,xlab="Node Label as Date in Ma",
                       ylab=filename0,
                       xlim=rev(c(2200,3600))))
-
+  
 };
 #histnode(177,"All Initial Trees.datedist")
 #histnode(177,"1 PassedTrees.datedist")
@@ -401,30 +401,30 @@ PlotPassedTrees <- function(datedistfile){
   }
   #Store edge length in a variable
   newTree$edge.length = v
-
+  
   #To-Do: Rewrite keys from file
   #DEBUG OFF: taxonomyKey = read.delim("phototrophy_key_no_bin_key.txt",header=FALSE)
   tip = newTree$tip.label
   #DEBUG OFF: newTree$tip.label=mapvalues(tip, from=taxonomyKey$V3, to=as.character(taxonomyKey$V4))
-
+  
   #TO-DO expand upon this!
-
+  
   #Begin PDF
   pdf("AllMedianTreeDates.pdf", 7, 5)
-
+  
   #TO-DO: Adjust these plot methods and understand them better!
-
+  
   #plot1<- plot(newTree,show.node.label = FALSE,cex = 0.5,show.tip.label = TRUE)
   plot(newTree,show.node.label = TRUE,cex = 0.5,show.tip.label = TRUE)
   #axisPhylo()
   #plot1<- plot(newTree,show.node.label = FALSE,cex = 0.5,show.tip.label = TRUE)
-
+  
   #tmp = newTree
   #tmp$node.label=seq(tmp$node.label)
   #plot(tmp,show.node.label = TRUE,cex = 0.5,show.tip.label = FALSE)
   #plot2<- plot(tmp,show.node.label = TRUE,cex = 0.5,show.tip.label = FALSE)
   axisPhylo()
-
+  
   dev.off()
   write.tree(newTree, file="AllPassedMedianTreeDates.tree")
   return("AllMedianTreeDates.pdf")
@@ -563,6 +563,15 @@ setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBB_long")
 LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/Cyano_modelBB_long_ugam_bd_7_20_sample.datedist","BBlong")
 FilterTreeHGT(BBlong,HGT,"BB_long_ugam_bd_model_cyanoclock_highpass") #9900 trees
 
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunCA_ugam_bd")
+LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/Cyano_modelCA_ugam_bd_7_20_sample.datedist","CAugambd")
+FilterTreeHGT(CAugambd,HGT,"CA_ugam_bd_model_cyanoclock_highpass") #4000 trees (I think)
+
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunCA_cir_bd")
+LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/Cyano_modelCA_cir_bd_7_20_sample.datedist","CAcirbd")
+FilterTreeHGT(CAcirbd,HGT,"CA_cir_m_bd_model_cyanoclock_highpass") #4000 trees (I think)
+
+
 ### CHECK A GIVEN HGT CONSTRAINT THAT IT HAS SAME NUMBER INTERNAL NODES
 # TO-DO RECODE AS LOOP FOR EACH I IN HGT:
 
@@ -617,14 +626,10 @@ histnodedensity(177,"14 PassedTrees.datedist")
 histnodedensity(177,"15 PassedTrees.datedist")
 histnodedensity(177,"16 PassedTrees.datedist")
 
-##############################################
-### END SCRIPT EXECUTION #####################
-##############################################
-
 ####################################################################
-### DRAFT CODE FOR ANALYSIS FOR INDIVIDUAL MODEL:
-### BB_long / BEugambd
-####################################################################
+### ANALYZE FOR INDIVIDUAL MODEL:
+### BEugambd
+#####
 
 #Select Trees that passed multiple HGT constraints:
 # HGT[n] + HGT[n+1]   ### TO-DO recode this in a loop (maybe?)
@@ -633,27 +638,13 @@ histnodedensity(177,"16 PassedTrees.datedist")
 #Existing script re-orders columns so what was the index column becomes the var.
 #TO-DO: Recode this in Python using a better intersection algorithm!!!
 
+
 setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/")
-# NOTE! This must contain index files for the model/datedist you're working with!
-
 for (i in HGT){LoadHGTrun(i)}
-
-#HGT Group 0 All Initial Trees
-#HGT Group 1: 4,8,15,7,16,9,3,6,12,5
-#HGT Group 2:                       ,2
-#HGT Group 3:                        ,14
-#HGT Group 4:                           ,13
-#HGT Group 5:                              ,1
-#HGT Group 6:                                ,11
-#HGT Group 7:                                  ,10
-
-#1 {4,8,15,7,16,9,3,6,12,5}
-
-### Match HGT 3,5,7 to see which trees pass all these constraints!
+####
 MatchAllPassed <- data.frame(match_df(match_df(PassedTreesIndex3,PassedTreesIndex5),PassedTreesIndex7,on=NULL)) #use reduce/map to make this work!
 #TO-DO Fix this sloppy code and use reduce/map to make this work!
 
-# Intersect HGT Group 1
 MatchAllPassed1 <- data.frame(
   match_df(
     match_df(
@@ -663,45 +654,166 @@ MatchAllPassed1 <- data.frame(
             match_df(
               match_df(
                 match_df(
-                  match_df(PassedTreesIndex4,PassedTreesIndex8,on=NULL
-                  ),PassedTreesIndex15,on=NULL
-                ),PassedTreesIndex7,on=NULL
-              ),PassedTreesIndex16,on=NULL
-            ),PassedTreesIndex9,on=NULL
-          ),PassedTreesIndex3,on=NULL
-        ),PassedTreesIndex6,on=NULL
-      ),PassedTreesIndex12,on=NULL
-    ),PassedTreesIndex5,on=NULL)
+                  match_df(PassedTreesIndex3,PassedTreesIndex4,on=NULL
+                  ),PassedTreesIndex5,on=NULL
+                ),PassedTreesIndex6,on=NULL
+              ),PassedTreesIndex7,on=NULL
+            ),PassedTreesIndex8,on=NULL
+          ),PassedTreesIndex9,on=NULL
+        ),PassedTreesIndex12,on=NULL
+      ),PassedTreesIndex15,on=NULL
+    ),PassedTreesIndex16,on=NULL)
 );
-# Check how many trees pass
+
 length(MatchAllPassed1$x)
 length((filter(MatchAllPassed1, x == "1")$x))
-# Data manipulation
+
+MatchAllPassed2 <- data.frame(
+  match_df(
+    match_df(
+      match_df(
+        match_df(PassedTreesIndex14,PassedTreesIndex2,on=NULL
+        ),PassedTreesIndex13,on=NULL
+      ),PassedTreesIndex11,on=NULL
+    ),PassedTreesIndex1,on=NULL)
+);
+
+length(MatchAllPassed2$x)
+length((filter(MatchAllPassed2, x == "1")$x))
+
+
+MatchAllPassed3 <- data.frame(
+  match_df(
+    match_df(
+      match_df(
+        match_df(
+          match_df(
+            match_df(
+              match_df(
+                match_df(
+                  match_df(
+                    match_df(
+                      match_df(
+                        match_df(PassedTreesIndex3,PassedTreesIndex4,on=NULL
+                        ),PassedTreesIndex5,on=NULL
+                      ),PassedTreesIndex6,on=NULL
+                    ),PassedTreesIndex7,on=NULL
+                  ),PassedTreesIndex8,on=NULL
+                ),PassedTreesIndex9,on=NULL
+              ),PassedTreesIndex12,on=NULL
+            ),PassedTreesIndex15,on=NULL
+          ),PassedTreesIndex16,on=NULL
+        ),PassedTreesIndex14,on=NULL
+      ),PassedTreesIndex13,on=NULL
+    ),PassedTreesIndex2,on=NULL
+  )
+);
+
+length(MatchAllPassed3$x)
+length((filter(MatchAllPassed3, x == "1")$x))
+
+MatchAllPassedZ <- data.frame(
+  match_df(
+    match_df(
+      match_df(
+        match_df(
+          match_df(
+            match_df(
+              match_df(
+                match_df(
+                  match_df(
+                    match_df(
+                      match_df(
+                        match_df(
+                          match_df(
+                            match_df(PassedTreesIndex3,PassedTreesIndex4,on=NULL
+                            ),PassedTreesIndex5,on=NULL
+                          ),PassedTreesIndex6,on=NULL
+                        ),PassedTreesIndex7,on=NULL
+                      ),PassedTreesIndex8,on=NULL
+                    ),PassedTreesIndex9,on=NULL
+                  ),PassedTreesIndex12,on=NULL
+                ),PassedTreesIndex15,on=NULL
+              ),PassedTreesIndex16,on=NULL
+            ),PassedTreesIndex14,on=NULL
+          ),PassedTreesIndex13,on=NULL
+        ),PassedTreesIndex2,on=NULL
+      ),PassedTreesIndex10,on=NULL
+    ),PassedTreesIndex11,on=NULL
+  )
+);
+
+length(MatchAllPassedZ$x)
+length((filter(MatchAllPassedZ, x == "1")$x))
+
+AllPassed <- MatchAllPassedZ$X[ which(MatchAllPassedZ$x %in% 1) ]
+LoadDateDist("All Initial Trees.datedist","MyInitialTrees")
+AllPassedTrees <- MyInitialTrees[c(AllPassed)]
+print(AllPassedTrees)
+print(AllPassed)
+write.tree(AllPassedTrees,"Match HGT allbut1 PassedTrees.datedist")
+write.csv(AllPassed,file="Match HGT allbut1 PassedTrees.txt")
+histnode(177,"Match HGT allbut10 PassedTrees.datedist")
+histnodedensity(177,"Match HGT allbut1 PassedTrees.datedist")
+
+histnode(177,"All Initial Trees.datedist")
+
+histnode(177,"Match HGT allbut1 PassedTrees.datedist")
+LoadDateDist("Match HGT allbut1 PassedTrees.datedist","MatchAllTreesZ")
+class(MyTreeLabels)<-'Phylo'
+class(MatchAllTreesZ)<-'Phylo'
+PrintNodeAge(MyTreeLabels,MatchAllTreesZ,1,177)
+
+#TREE 5619, 177:"2801.26"
+
+#MatchAllPassed <- data.frame(match_df(PassedTreesIndex1,PassedTreesIndex4,on=NULL)) #use reduce/map to make this work!
+####
+
+AllPassed <- MatchAllPassed3$X[ which(MatchAllPassed3$x %in% 1) ]
+LoadDateDist("All Initial Trees.datedist","MyInitialTrees")
+AllPassedTrees <- MyInitialTrees[c(AllPassed)]
+print(AllPassedTrees)
+print(AllPassed)
+write.tree(AllPassedTrees,"Match HGT 3_4_5_6_7_8_9_12_15_16_14_13_2_PassedTrees.datedist")
+write.csv(AllPassed,file="Match HGT 3_4_5_6_7_8_9_12_15_16_14_13_2_PassedTrees.txt")
+histnode(177,"Match HGT 3_4_5_6_7_8_9_12_15_16_14_13_2_PassedTrees.datedist")
+histnodedensity(177,"Match HGT 3_4_5_6_7_8_9_12_15_16_14_13_2_PassedTrees.datedist")
+histnode(177,"All Initial Trees.datedist")
+histnodedensity(177,"Match HGT 3_4_5_6_7_8_9_12_15_16_14_13_2_PassedTrees.datedist")
+
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBE_long/")
+
 AllPassed <- MatchAllPassed1$X[ which(MatchAllPassed1$x %in% 1) ]
 LoadDateDist("All Initial Trees.datedist","MyInitialTrees")
 AllPassedTrees <- MyInitialTrees[c(AllPassed)]
-# Print Passed Trees
 print(AllPassedTrees)
 print(AllPassed)
-# Write Passed Trees down to disk
-write.tree(AllPassedTrees,"Match HGT 1 PassedTrees.datedist")
-write.csv(AllPassed,file="Match HGT 1 PassedTrees.txt")
+write.tree(AllPassedTrees,"Match HGT 3_4_5_6_7_8_9_12_15_16_PassedTrees.datedist")
+write.csv(AllPassed,file="Match HGT 3_4_5_6_7_8_9_12_15_16_PassedTrees.txt")
+histnode(177,"Match HGT 3_4_5_6_7_8_9_12_15_16_PassedTrees.datedist")
+histnodedensity(177,"Match HGT 3_4_5_6_7_8_9_12_15_16_PassedTrees.datedist")
 
-# Load back results
-LoadDateDist("Match HGT 1 PassedTrees.datedist","MatchAllTrees1")
+AllPassed <- MatchAllPassed2$X[ which(MatchAllPassed2$x %in% 1) ]
+LoadDateDist("All Initial Trees.datedist","MyInitialTrees")
+AllPassedTrees <- MyInitialTrees[c(AllPassed)]
+print(AllPassedTrees)
+print(AllPassed)
+write.tree(AllPassedTrees,"Match HGT 2_14_13_PassedTrees.datedist")
+write.csv(AllPassed,file="Match HGT 2_14_13_PassedTrees.txt")
+histnode(177,"Match HGT 2_14_13_PassedTrees.datedist")
+histnodedensity(177,"Match HGT 2_14_13_PassedTrees.datedist")
 
-# Print results
-PrintNodeAge(MyTreeLabels,MatchAllTrees1,1,177)
 
-histnode(177,"Match HGT 1 PassedTrees.datedist")
-histnodedensity(177,"Match HGT 1 PassedTrees.datedist")
 
-histnode(177,"All Initial Trees.datedist")
-histnodedensity(177,"All Initial Trees.datedist")
+##############################################
+### END SCRIPT EXECUTION #####################
+##############################################
 
 ##############################################
 ### SAVED RESULTS FOR DEBUGGING ##############
 ##############################################
+
+### Results for new model runs:
 
 ### END SCRIPT RESULTS & NOTES
 ##############################################
