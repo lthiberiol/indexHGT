@@ -85,7 +85,7 @@ SampleTrees0 <- function(tree0,a,d,nameofrun,print=T){
   filename2 = paste0(nameofrun,filename2,sep="")
   write.csv(TreePassedConstraint,file=filename2)
   return(nPassedTrees)
-  
+
   }
   else if ( (nPassedTrees<2)==FALSE )
   {
@@ -107,7 +107,7 @@ SampleTrees0 <- function(tree0,a,d,nameofrun,print=T){
     write.csv(TreePassedConstraint,file=filename2)
     return(nPassedTree)
   }
-  
+
 };
 SampleTreesStandard0 <- function(MyTree,Ancestor,Descendant,i){
   a<- with(internalNodeLabels,N[Node==(Ancestor)])
@@ -268,7 +268,7 @@ histnode <- function(node2plot,filename0){
   return(hist.default(nodelab,xlab="Node Label as Date in Ma",
                       ylab=filename0,
                       xlim=rev(c(2200,3600))))
-  
+
 };
 #histnode(177,"All Initial Trees.datedist")
 #histnode(177,"1 PassedTrees.datedist")
@@ -401,30 +401,30 @@ PlotPassedTrees <- function(datedistfile){
   }
   #Store edge length in a variable
   newTree$edge.length = v
-  
+
   #To-Do: Rewrite keys from file
   #DEBUG OFF: taxonomyKey = read.delim("phototrophy_key_no_bin_key.txt",header=FALSE)
   tip = newTree$tip.label
   #DEBUG OFF: newTree$tip.label=mapvalues(tip, from=taxonomyKey$V3, to=as.character(taxonomyKey$V4))
-  
+
   #TO-DO expand upon this!
-  
+
   #Begin PDF
   pdf("AllMedianTreeDates.pdf", 7, 5)
-  
+
   #TO-DO: Adjust these plot methods and understand them better!
-  
+
   #plot1<- plot(newTree,show.node.label = FALSE,cex = 0.5,show.tip.label = TRUE)
   plot(newTree,show.node.label = TRUE,cex = 0.5,show.tip.label = TRUE)
   #axisPhylo()
   #plot1<- plot(newTree,show.node.label = FALSE,cex = 0.5,show.tip.label = TRUE)
-  
+
   #tmp = newTree
   #tmp$node.label=seq(tmp$node.label)
   #plot(tmp,show.node.label = TRUE,cex = 0.5,show.tip.label = FALSE)
   #plot2<- plot(tmp,show.node.label = TRUE,cex = 0.5,show.tip.label = FALSE)
   axisPhylo()
-  
+
   dev.off()
   write.tree(newTree, file="AllPassedMedianTreeDates.tree")
   return("AllMedianTreeDates.pdf")
@@ -464,7 +464,8 @@ MyTreeLabelsNewTips$tip.label=mapvalues(tip, from=taxonomyKey$ShortName, to=as.c
 
 ### HGT index as data frame and HGT atomic vector index
 ####### TO-DO: Debug error in read.table, which will occur because of file format.
-HGTnode_input <- read.csv(file="modeldata/HGTindex_highconfidence_10_2_19.txt", header=TRUE, sep=",",fill=TRUE)
+HGTnode_input <- read.csv(file="modeldata/HGTindex_highpass_correct_11_6_19.txt", header=TRUE, sep=",",fill=TRUE)
+#PREVIOUSLY: HGTindex_highconfidence_10_2_19.txt
 # N.B. Carriage return/mac vs PC text file can throw error, open file, reformat, try again
 # HGTnode index and atomic vector HGT also created
 HGTnode <- data.matrix(HGTnode_input[,])
@@ -559,15 +560,15 @@ setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBE_ugambd
 LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/data/Cyano_modelBE_ugam_bd_7_20_sample.datedist","BEugambd")
 FilterTreeHGT(BEugambd,HGT,"BE_ugambd_model_cyanoclock_highpass") #1500 trees
 
-setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBB_long")
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBB_long_112019")
 LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/Cyano_modelBB_long_ugam_bd_7_20_sample.datedist","BBlong")
 FilterTreeHGT(BBlong,HGT,"BB_long_ugam_bd_model_cyanoclock_highpass") #9900 trees
 
-setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunCA_ugam_bd")
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunCA_ugam_bd_112019")
 LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/Cyano_modelCA_ugam_bd_7_20_sample.datedist","CAugambd")
 FilterTreeHGT(CAugambd,HGT,"CA_ugam_bd_model_cyanoclock_highpass") #4000 trees (I think)
 
-setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunCA_cir_bd")
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunCA_cir_bd_112019")
 LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/Cyano_modelCA_cir_bd_7_20_sample.datedist","CAcirbd")
 FilterTreeHGT(CAcirbd,HGT,"CA_cir_m_bd_model_cyanoclock_highpass") #4000 trees (I think)
 
