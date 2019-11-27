@@ -462,6 +462,8 @@ MyTreeLabelsNewTips$tip.label=mapvalues(tip, from=taxonomyKey$ShortName, to=as.c
 # MyTreeLabels$tip.label <- MyTreeLabelsNewTips$tip.label
 # MyTreeLabelsRanger$tip.label <- MyTreeLabelsNewTips$tip.label
 
+#11-13-19 Corrected #2 from 16 HGT High Pass Constraints RunBB_long_corrected
+
 ### HGT index as data frame and HGT atomic vector index
 ####### TO-DO: Debug error in read.table, which will occur because of file format.
 HGTnode_input <- read.csv(file="modeldata/HGTindex_highpass_correct_11_6_19.txt", header=TRUE, sep=",",fill=TRUE)
@@ -498,6 +500,7 @@ LoadDateDist("modeldata/Cyano_modelBD_ugam_bd_7_20_sample.datedist","BD")
 LoadDateDist("modeldata/Cyano_modelBE_ugam_bd_7_20_sample.datedist","BE")
 LoadDateDist("modeldata/Cyano_modelBF_ugam_bd_7_20_sample.datedist","BF")
 LoadDateDist("modeldata/Cyano_modelBG_ugam_bd_7_20_sample.datedist","BG")
+LoadDateDist("modeldata/Cyano_modelBH_ugam_bd_7_20_sample.datedist","BH")
 #LoadDateDist(" "," ")
 
 ################################################################################################
@@ -524,6 +527,31 @@ BF[[1]]$Nnode == MyTreeLabels$Nnode
 BG[[1]]$Nnode == MyTreeLabels$Nnode
 
 ################################################################################################
+
+#### 11-27-19 Model Assessment Trees Passed Constraint Metric
+
+setwd("/Users/payette/Dropbox (MIT)/indexHGT/R-code-JGP/modeldata/RunBH_ugam_bd")
+LoadDateDist("/Users/payette/Dropbox (MIT)/indexHGT/R-code-JGP/modeldata/Cyano_modelBH_ugam_bd_7_20_sample.datedist","BHugambd")
+FilterTreeHGT(BHugambd,HGT,"BH_ugam_bd_model_cyanoclock_highpass") #100
+
+setwd("/Users/payette/Dropbox (MIT)/indexHGT/R-code-JGP/modeldata/RunBH_ugam_nobd")
+LoadDateDist("/Users/payette/Dropbox (MIT)/indexHGT/R-code-JGP/modeldata/Cyano_modelBH_ugam_nobd_7_20_sample.datedist","BHugamnobd")
+FilterTreeHGT(BHugamnobd,HGT,"BH_ugam_nobd_model_cyanoclock_highpass") #100
+
+setwd("/Users/payette/Dropbox (MIT)/indexHGT/R-code-JGP/modeldata/RunBH_cir_bd")
+LoadDateDist("/Users/payette/Dropbox (MIT)/indexHGT/R-code-JGP/modeldata/Cyano_modelBH_cir_bd_7_20_sample.datedist","BHcirbd")
+FilterTreeHGT(BHcirbd,HGT,"BH_cir_bd_model_cyanoclock_highpass") #100
+
+setwd("/Users/payette/Dropbox (MIT)/indexHGT/R-code-JGP/modeldata/RunBH_cir_nobd")
+LoadDateDist("/Users/payette/Dropbox (MIT)/indexHGT/R-code-JGP/modeldata/Cyano_modelBH_cir_nobd_7_20_sample.datedist","BHcirnobd")
+FilterTreeHGT(BHcirnobd,HGT,"BH_cir_nobd_model_cyanoclock_highpass") #100
+
+####
+
+#11-13-19 Corrected #2 from 16 HGT High Pass Constraints RunBB_long_corrected
+setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBB_long_corrected")
+LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/Cyano_modelBB_long_ugam_bd_7_20_sample.datedist","BBlong")
+FilterTreeHGT(BBlong,HGT,"BB_long_ugam_bd_model_cyanoclock_highpass") #9900 trees
 
 ### EXECUTE LOOP OVER ALL HGT AND FILTER FOR TREES THAT MEET CONSTRAINT
 
@@ -559,6 +587,8 @@ FilterTreeHGT(BEnobd,HGT,"BE_nobd_model_cyanoclock_highpass") #1400 trees
 setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBE_ugambd")
 LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/data/Cyano_modelBE_ugam_bd_7_20_sample.datedist","BEugambd")
 FilterTreeHGT(BEugambd,HGT,"BE_ugambd_model_cyanoclock_highpass") #1500 trees
+
+#### Models below have been run for HGT#2 correction
 
 setwd("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/RunBB_long_112019")
 LoadDateDist("/Users/payette/Dropbox (MIT)/R-code-mit/R-code-mit/modeldata/Cyano_modelBB_long_ugam_bd_7_20_sample.datedist","BBlong")
